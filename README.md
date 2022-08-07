@@ -4,7 +4,7 @@ A simple Rust command-line program to search files for a given pattern
 
 # Installation
 
-Run `cargo build --release` and add the resulting binary under `target/release` to your path.
+Run `cargo install --path .` to install the Rust binary. You must have the Rust toolchain installed on your computer.
 
 # Todo
 

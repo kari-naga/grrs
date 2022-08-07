@@ -46,16 +46,16 @@ fn main() -> Result<()> {
 
     let lines = BufReader::new(file).lines().enumerate();
 
-    let mut last_idx = 0;
-
-    let mut count = 0;
-
     let re = Regex::new(&(
         if args.case_insensitive {"(?i)"} else {""}.to_string()
         + if args.match_words {r"\b(?P<match>"} else {"(?P<match>"}
         + &args.pattern
         + if args.match_words {r")\b"} else {")"}
     )).with_context(|| format!("could not compile regex for pattern `{}`", &args.pattern))?;
+
+    let mut last_idx = 0;
+
+    let mut count = 0;
     
     for (idx, line) in lines {
         let idx = idx + 1;
