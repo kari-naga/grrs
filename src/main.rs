@@ -98,12 +98,12 @@ fn main() -> Result<()> {
     }
 
     if count == 0 {
-        writeln!(handle, "found no matches")
+        writeln!(handle, "found no matching lines")
             .with_context(|| "could not print message")?;
     } else if args.count_matches {
         writeln!(handle, "{separator}")
             .with_context(|| "could not print separator")?;
-        writeln!(handle, "found {count} match{}", if count > 1 {"es"} else {""})
+        writeln!(handle, "found {count} matching line{}", if count > 1 {"es"} else {""})
             .with_context(|| "could not print message")?;
     }
 
