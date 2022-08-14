@@ -44,6 +44,13 @@ fn main() -> Result<()> {
 
     let lines = BufReader::new(file).lines().enumerate();
 
+    let re = Regex::new(&[
+        if args.case_insensitive {"(?i)"} else {""},
+        if args.match_words {r"\b(?P<match>"} else {"(?P<match>"},
+        &args.pattern,
+        if args.match_words {r")\b"} else {")"},
+    ].concat()).with_context(|| format!("could not compile regex for pattern `{}`", &args.pattern))?;
+
     let mut in_terminal = true;
 
     let width = match terminal_size() {
@@ -54,12 +61,7 @@ fn main() -> Result<()> {
         },
     };
 
-    let re = Regex::new(&(
-        if args.case_insensitive {"(?i)"} else {""}.to_string()
-        + if args.match_words {r"\b(?P<match>"} else {"(?P<match>"}
-        + &args.pattern
-        + if args.match_words {r")\b"} else {")"}
-    )).with_context(|| format!("could not compile regex for pattern `{}`", &args.pattern))?;
+    let separator = "-".repeat(width);
 
     let mut last_idx = 0;
 
@@ -71,12 +73,13 @@ fn main() -> Result<()> {
         let match_result = re.is_match(&line);
         if if args.invert_match {!match_result} else {match_result} {
             if last_idx != 0 && idx - last_idx > 1 {
-                writeln!(handle, "{}", "-".repeat(width))
+                writeln!(handle, "{separator}")
                     .with_context(|| "could not print separator")?;
             }
             let end = format!("line {}", idx);
-            let line = if line.len() > width - end.len() - 3 {
-                (&line[..width - end.len() - 6]).to_string() + "..."
+            let max_len = width - end.len() - 3;
+            let line = if line.len() > max_len {
+                (&line[..max_len - 3]).to_string() + "..."
             } else {
                 line
             };
@@ -86,7 +89,8 @@ fn main() -> Result<()> {
             } else {
                 line
             };
-            writeln!(handle, "{line}{}{end}", " ".repeat(width - len - end.len()))
+            let align = width - len;
+            writeln!(handle, "{line}{end:>align$}")
                 .with_context(|| format!("could not print line {idx} in file `{}`", &args.path.display()))?;
             last_idx = idx;
             count += 1;
@@ -97,7 +101,7 @@ fn main() -> Result<()> {
         writeln!(handle, "found no matches")
             .with_context(|| "could not print message")?;
     } else if args.count_matches {
-        writeln!(handle, "{}", "-".repeat(width))
+        writeln!(handle, "{separator}")
             .with_context(|| "could not print separator")?;
         writeln!(handle, "found {count} match{}", if count > 1 {"es"} else {""})
             .with_context(|| "could not print message")?;
